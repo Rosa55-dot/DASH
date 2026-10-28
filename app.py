@@ -135,7 +135,9 @@ empTerminations['Employees']=empTerminations['Employees']*-1
 empTerminations['action']='Termination'
 
 empHiresTerminations = pd.concat([empHires,empTerminations])
-empHiresTerminations=empHiresTerminations[empHiresTerminations['Period']>=fechaHoy-datetime.timedelta(days=730)]
+
+# --- AQUI ESTA EL ARREGLO: Eliminamos el filtro de 2 años ---
+# empHiresTerminations=empHiresTerminations[empHiresTerminations['Period']>=fechaHoy-datetime.timedelta(days=730)]
 
 empTerminations =dfDatosHR[dfDatosHR['EmploymentStatus'].isin(['Voluntarily Terminated','Terminated for Cause'])].groupby('EmploymentStatus').agg(Employees=('EmpID','count')).reset_index()
 empTerminationReason =dfDatosHR[dfDatosHR['EmploymentStatus'].isin(['Voluntarily Terminated','Terminated for Cause'])].groupby(['EmploymentStatus','TermReason']).agg(Employees=('EmpID','count')).reset_index()
@@ -154,19 +156,21 @@ figPerformance = aplicar_tema_neon(figPerformance,titulo="Performance",subtitulo
 
 figTerminations = px.pie(empTerminations,names='EmploymentStatus',values='Employees', color_discrete_sequence=paletaColores)
 figTerminations.update_traces(textposition='outside', textinfo='percent+label')
-figTerminations = aplicar_tema_neon(figTerminations,titulo="Terminations by type",subtitulo="Last 2 years")
+figTerminations = aplicar_tema_neon(figTerminations,titulo="Terminations by type",subtitulo="Histórico")
 
 figTerminationsReason = px.bar(empTerminationReason,y='TermReason',x='Employees',color='EmploymentStatus', color_discrete_sequence=paletaColores)
 figTerminationsReason.update_yaxes(categoryorder='array', categoryarray= ordenTerminationReason)
-figTerminationsReason = aplicar_tema_neon(figTerminationsReason,legend=True,titulo="Reason for Terminations",subtitulo="Last 2 years")
+figTerminationsReason = aplicar_tema_neon(figTerminationsReason,legend=True,titulo="Reason for Terminations",subtitulo="Histórico")
 
 figDeptTenure = px.bar(empActivosDeptTenure.sort_values('Employees',ascending=False),y='Department',x='Employees',color='TenureRange', color_discrete_sequence=paletaColores)
 figDeptTenure.update_yaxes(categoryorder='array', categoryarray= ordenDeptTotal)
 figDeptTenure.update_layout(legend_traceorder="grouped")
 figDeptTenure = aplicar_tema_neon(figDeptTenure,legend=True,titulo="Tenure by Department",subtitulo="")
 
+# --- AQUI ESTA EL ARREGLO: Forzamos el eje de fechas ---
 figHireTerminations = px.bar(empHiresTerminations,x='Period',y='Employees',color='action', color_discrete_sequence=paletaColores)
-figHireTerminations = aplicar_tema_neon(figHireTerminations,legend=True,titulo="Hires vs Terminations",subtitulo="Last 2 years")
+figHireTerminations.update_xaxes(type='date') 
+figHireTerminations = aplicar_tema_neon(figHireTerminations,legend=True,titulo="Hires vs Terminations",subtitulo="Histórico")
 
 figEmpXDept=px.bar(empActivosDept.sort_values(['Sex','Employees']),x='Employees',y='Department',color='Sex',
            barmode='group',text='Employees',
